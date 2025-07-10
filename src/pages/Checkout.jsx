@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/cartcontext';
 import { useNavigate } from 'react-router-dom';
 import LocationPopup from '../components/LocationPopup';
@@ -17,17 +17,27 @@ const Checkout = () => {
   });
 
   const [locationAllowed, setLocationAllowed] = useState(null);
-  const [showPopup, setShowPopup] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState(false); // 🔁 Tracks order attempt after popup
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = 25;
   const delivery = mode === 'delivery' ? 20 : 0;
   const total = subtotal + tax + delivery;
 
+  const isDeliveryValid =
+    address.name.trim() &&
+    address.phone.trim() &&
+    address.fullAddress.trim() &&
+    address.pincode.trim();
+
+  const isDineInValid = tableNumber.trim();
+
   const handlePlaceOrder = () => {
-    // If location was denied or undecided, force popup
-    if (locationAllowed !== true) {
+    // For delivery, check if location permission granted
+    if (mode === 'delivery' && locationAllowed !== true) {
       setShowPopup(true);
+      setPendingOrder(true);
       return;
     }
 
@@ -47,25 +57,26 @@ const Checkout = () => {
     navigate('/pay', { state: orderDetails });
   };
 
-  const isDeliveryValid =
-    address.name.trim() &&
-    address.phone.trim() &&
-    address.fullAddress.trim() &&
-    address.pincode.trim();
-
-  const isDineInValid = tableNumber.trim();
+  // ✅ Automatically continue if allowed after popup
+  useEffect(() => {
+    if (pendingOrder && locationAllowed === true && !showPopup) {
+      setPendingOrder(false); // reset
+      handlePlaceOrder();
+    }
+  }, [locationAllowed, showPopup, pendingOrder]);
 
   return (
     <div className="min-h-screen bg-[#1e1a15] text-white p-4 relative">
+      {/* Location Popup */}
       {showPopup && (
         <LocationPopup
           onAllow={() => {
             setLocationAllowed(true);
-            setShowPopup(false); // ✅ Hide only on allow
+            setShowPopup(false);
           }}
           onDeny={() => {
-            setLocationAllowed(false); // ❌ Don't hide popup on deny
-            // setShowPopup(false); ❌ Removed
+            setLocationAllowed(false);
+            setShowPopup(false); // Optional: dismiss popup on deny
           }}
         />
       )}
@@ -96,7 +107,7 @@ const Checkout = () => {
         </label>
       </div>
 
-      {/* Dine-in Table Number */}
+      {/* Dine-In Input */}
       {mode === 'dinein' && (
         <div className="flex items-center gap-2 mb-6">
           <span className="text-orange-400 font-bold">🍽️ TABLE NO:</span>
@@ -111,7 +122,7 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* Delivery Address */}
+      {/* Delivery Inputs */}
       {mode === 'delivery' && (
         <div className="bg-[#2b2317] p-4 rounded-md mb-6 space-y-4">
           <input
@@ -154,7 +165,7 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* Place Order Button */}
+      {/* Place Order */}
       <button
         onClick={handlePlaceOrder}
         disabled={(mode === 'dinein' && !isDineInValid) || (mode === 'delivery' && !isDeliveryValid)}
