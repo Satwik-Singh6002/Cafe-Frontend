@@ -16,7 +16,7 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [addons, setAddons] = useState([]);
-  const [feedback, setFeedback] = useState(''); // ✅ Added feedback state
+  const [feedback, setFeedback] = useState('');
 
   const handleAddonToggle = (addon) => {
     setAddons((prev) =>
@@ -32,7 +32,7 @@ const ProductDetail = () => {
       quantity,
       selectedSize,
       addons,
-      feedback, // ✅ include feedback
+      feedback,
       cartKey: `${product.id}-${selectedSize}-${addons.sort().join(',')}`,
     };
     addToCart(cartItem);
@@ -43,20 +43,26 @@ const ProductDetail = () => {
 
   return (
     <div className="bg-[#1e1a15] text-white min-h-screen p-4 pb-40">
-      {/* Header with back + wishlist */}
+      {/* Header with back button only */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => navigate(-1)} className="text-white text-lg">←</button>
         <h2 className="text-lg font-semibold">Details</h2>
-        <button
-          onClick={() => toggleWishlist(product)}
-          className="text-xl transition-transform duration-200 transform hover:scale-125"
-        >
-          {wishlisted ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
-        </button>
+        <div className="w-6" /> {/* Spacer to center title */}
       </div>
 
-      <div className="rounded-2xl overflow-hidden mb-4">
+      {/* Product image with wishlist icon */}
+      <div className="relative rounded-2xl overflow-hidden mb-4">
         <img src={product.image} alt={product.name} className="w-full object-cover h-64" />
+        <button
+          onClick={() => toggleWishlist(product)}
+          className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-md hover:scale-110 transition"
+        >
+          {wishlisted ? (
+            <FaHeart className="text-red-500 text-lg" />
+          ) : (
+            <FaRegHeart className="text-gray-700 text-lg" />
+          )}
+        </button>
       </div>
 
       <h3 className="text-2xl font-bold mb-2">{product.name}</h3>
@@ -123,7 +129,6 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      {/* ✅ Feedback Section */}
       <div className="mb-4">
         <h4 className="font-semibold mb-2">Give Feedback</h4>
         <textarea
@@ -135,6 +140,7 @@ const ProductDetail = () => {
         />
       </div>
 
+      {/* Bottom cart bar */}
       <div className="fixed bottom-0 left-0 w-full bg-[#2a2217] p-4 flex justify-between items-center z-50">
         <div className="flex items-center gap-3">
           <button

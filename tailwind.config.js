@@ -7,12 +7,11 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        ride: {
-  '0%': { transform: 'translateX(0)' },
-  '80%': { transform: 'translateX(100%)' },
-  '90%': { transform: 'translateX(105%)' }, // overshoot for smoothness
-  '100%': { transform: 'translateX(0)' },
+       ride: {
+  '0%': { transform: 'translateX(0%)' },
+  '100%': { transform: 'translateX(100%)' },
 },
+
 
       },
       animation: {

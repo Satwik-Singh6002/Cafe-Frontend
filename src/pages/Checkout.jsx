@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/cartcontext';
 import { useNavigate } from 'react-router-dom';
+import LocationPopup from '../components/LocationPopup';
 
 const Checkout = () => {
-  const { cart, clearCart } = useCart();
+  const { cart } = useCart();
+  const navigate = useNavigate();
+
   const [mode, setMode] = useState('dinein');
   const [tableNumber, setTableNumber] = useState('');
   const [address, setAddress] = useState({
@@ -13,7 +16,8 @@ const Checkout = () => {
     pincode: '',
   });
 
-  const navigate = useNavigate();
+  const [locationAllowed, setLocationAllowed] = useState(null);
+  const [showPopup, setShowPopup] = useState(true);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = 25;
@@ -21,23 +25,27 @@ const Checkout = () => {
   const total = subtotal + tax + delivery;
 
   const handlePlaceOrder = () => {
-  const estimatedTime = mode === 'dinein' ? '15–20 mins (Dine-In)' : '30–40 mins (Delivery)';
+    // If location was denied or undecided, force popup
+    if (locationAllowed !== true) {
+      setShowPopup(true);
+      return;
+    }
 
-  const orderDetails = {
-    items: cart,
-    mode,
-    tableNumber: mode === 'dinein' ? tableNumber : null,
-    address: mode === 'delivery' ? address : null,
-    subtotal,
-    tax,
-    delivery,
-    total,
-    estimatedTime,
+    const estimatedTime = mode === 'dinein' ? '15–20 mins (Dine-In)' : '30–40 mins (Delivery)';
+    const orderDetails = {
+      items: cart,
+      mode,
+      tableNumber: mode === 'dinein' ? tableNumber : null,
+      address: mode === 'delivery' ? address : null,
+      subtotal,
+      tax,
+      delivery,
+      total,
+      estimatedTime,
+    };
+
+    navigate('/pay', { state: orderDetails });
   };
-
-  clearCart();
-  navigate('/success', { state: orderDetails });
-};
 
   const isDeliveryValid =
     address.name.trim() &&
@@ -48,10 +56,23 @@ const Checkout = () => {
   const isDineInValid = tableNumber.trim();
 
   return (
-    <div className="min-h-screen bg-[#1e1a15] text-white p-4">
+    <div className="min-h-screen bg-[#1e1a15] text-white p-4 relative">
+      {showPopup && (
+        <LocationPopup
+          onAllow={() => {
+            setLocationAllowed(true);
+            setShowPopup(false); // ✅ Hide only on allow
+          }}
+          onDeny={() => {
+            setLocationAllowed(false); // ❌ Don't hide popup on deny
+            // setShowPopup(false); ❌ Removed
+          }}
+        />
+      )}
+
       <h2 className="text-xl font-bold mb-4">Checkout</h2>
 
-      {/* Toggle Mode */}
+      {/* Mode Selection */}
       <div className="flex items-center gap-4 mb-6">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -75,7 +96,7 @@ const Checkout = () => {
         </label>
       </div>
 
-      {/* Dine-in Input */}
+      {/* Dine-in Table Number */}
       {mode === 'dinein' && (
         <div className="flex items-center gap-2 mb-6">
           <span className="text-orange-400 font-bold">🍽️ TABLE NO:</span>
@@ -90,78 +111,53 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* Delivery Address Form */}
+      {/* Delivery Address */}
       {mode === 'delivery' && (
         <div className="bg-[#2b2317] p-4 rounded-md mb-6 space-y-4">
-          <div>
-            <label className="block mb-1 text-sm text-gray-300">Name</label>
-            <input
-              type="text"
-              className="w-full p-2 rounded bg-white text-black"
-              placeholder="Full Name"
-              value={address.name}
-              onChange={(e) => setAddress({ ...address, name: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block mb-1 text-sm text-gray-300">Phone Number</label>
-            <input
-              type="tel"
-              className="w-full p-2 rounded bg-white text-black"
-              placeholder="10-digit number"
-              value={address.phone}
-              onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block mb-1 text-sm text-gray-300">Full Address</label>
-            <textarea
-              className="w-full p-2 rounded bg-white text-black"
-              placeholder="House number, street, landmark..."
-              value={address.fullAddress}
-              onChange={(e) => setAddress({ ...address, fullAddress: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block mb-1 text-sm text-gray-300">Pincode</label>
-            <input
-              type="text"
-              className="w-full p-2 rounded bg-white text-black"
-              placeholder="6-digit Pincode"
-              value={address.pincode}
-              onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Name"
+            value={address.name}
+            onChange={(e) => setAddress({ ...address, name: e.target.value })}
+            className="w-full p-2 rounded bg-white text-black"
+          />
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            value={address.phone}
+            onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+            className="w-full p-2 rounded bg-white text-black"
+          />
+          <textarea
+            placeholder="Full Address"
+            value={address.fullAddress}
+            onChange={(e) => setAddress({ ...address, fullAddress: e.target.value })}
+            className="w-full p-2 rounded bg-white text-black"
+          />
+          <input
+            type="text"
+            placeholder="Pincode"
+            value={address.pincode}
+            onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
+            className="w-full p-2 rounded bg-white text-black"
+          />
         </div>
       )}
 
-      {/* Order Summary */}
+      {/* Price Summary */}
       <div className="space-y-2 text-sm text-gray-300 mb-6">
-        <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span>₹{subtotal}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Tax</span>
-          <span>₹{tax}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Delivery</span>
-          <span>{delivery === 0 ? 'Free' : `₹${delivery}`}</span>
-        </div>
+        <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal}</span></div>
+        <div className="flex justify-between"><span>Tax</span><span>₹{tax}</span></div>
+        <div className="flex justify-between"><span>Delivery</span><span>{delivery === 0 ? 'Free' : `₹${delivery}`}</span></div>
         <div className="flex justify-between font-bold text-white text-base mt-2">
-          <span>Total</span>
-          <span>₹{total}</span>
+          <span>Total</span><span>₹{total}</span>
         </div>
       </div>
 
-      {/* Submit */}
+      {/* Place Order Button */}
       <button
         onClick={handlePlaceOrder}
-        disabled={
-          (mode === 'dinein' && !isDineInValid) ||
-          (mode === 'delivery' && !isDeliveryValid)
-        }
+        disabled={(mode === 'dinein' && !isDineInValid) || (mode === 'delivery' && !isDeliveryValid)}
         className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-full hover:bg-yellow-500 transition disabled:opacity-50"
       >
         Place Order

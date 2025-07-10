@@ -15,7 +15,7 @@ const TrackOrder = () => {
     total,
   } = state || {};
 
-  const [orderStatus, setOrderStatus] = useState('preparing');
+  const [orderStatus, setOrderStatus] = useState('confirmed');
   const [showFeedback, setShowFeedback] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -26,20 +26,18 @@ const TrackOrder = () => {
   const paymentMode = 'UPI / Card / COD';
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev === 1) toast.success("Your order has been delivered!");
-        return prev > 0 ? prev - 1 : 0;
-      });
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const statusTimer = setTimeout(() => {
-      setOrderStatus('out-for-delivery');
-    }, 5000);
-    return () => clearTimeout(statusTimer);
+    const steps = ['confirmed', 'preparing', 'out-for-delivery'];
+    let stepIndex = 0;
+    const statusInterval = setInterval(() => {
+      if (stepIndex < steps.length) {
+        setOrderStatus(steps[stepIndex]);
+        stepIndex++;
+      } else {
+        clearInterval(statusInterval);
+        toast.success("Your order has been delivered!");
+      }
+    }, 3000);
+    return () => clearInterval(statusInterval);
   }, []);
 
   const handleFeedbackSubmit = () => {
@@ -70,9 +68,17 @@ const TrackOrder = () => {
     );
   }
 
+  const getRiderLeft = () => {
+    switch (orderStatus) {
+      case 'confirmed': return '0%';
+      case 'preparing': return '45%';
+      case 'out-for-delivery': return '90%';
+      default: return '0%';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#1e1a15] text-white p-4 max-w-md mx-auto relative">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <button onClick={() => navigate(-1)} className="text-white text-xl font-bold">&times;</button>
         <h2 className="text-lg font-bold">📍 Order Tracking</h2>
@@ -123,23 +129,38 @@ const TrackOrder = () => {
         )}
       </div>
 
-      {/* Live Tracking Animation */}
-      <div className="bg-[#2b2317] p-4 rounded mt-6 text-sm">
-        <p className="font-bold mb-3">🗺️ Live Tracking</p>
-        <div className="relative">
-          <div className="h-10 relative">
-            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-dotted-pattern" />
-            <div className="absolute top-[-10px] left-0 animate-ride z-10">
-              <span className="text-2xl">🚴</span>
-            </div>
-          </div>
-          <div className="flex justify-between mt-2 px-1 text-xs text-white">
-            <span>✅ Confirmed</span>
-            <span>⏳ Preparing</span>
-            <span>📦 Out</span>
-          </div>
-        </div>
-      </div>
+      {/* Live Tracking */}
+<div className="bg-[#2b2317] p-4 rounded mt-6 text-sm">
+  <p className="font-bold mb-3">🗺️ Live Tracking</p>
+
+  <div className="relative h-12 mb-4">
+    {/* Moving biker image */}
+    <div
+      className="absolute top-[-12px] transition-all duration-700 ease-in-out"
+      style={{ left: getRiderLeft() }}
+    >
+      <img
+        src="https://ih1.redbubble.net/image.5334683746.5741/flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg"
+        alt="Biker"
+        className="w-10 h-10 object-contain drop-shadow-md"
+      />
+    </div>
+
+    {/* Dotted path and checkpoints */}
+    <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-dotted-pattern transform -translate-y-1/2"></div>
+    <div className="absolute top-1/2 left-0 w-4 h-4 bg-green-500 rounded-full transform -translate-y-1/2"></div>
+    <div className="absolute top-1/2 left-[45%] w-4 h-4 bg-yellow-400 rounded-full transform -translate-y-1/2"></div>
+    <div className="absolute top-1/2 right-0 w-4 h-4 bg-blue-500 rounded-full transform -translate-y-1/2"></div>
+  </div>
+
+  <div className="flex justify-between text-xs px-1">
+    <span>✅ Confirmed</span>
+    <span>⏳ Preparing</span>
+    <span>📦 Out</span>
+  </div>
+</div>
+
+
 
       {/* Delivery Partner */}
       <div className="bg-[#2b2317] p-4 rounded mt-6 text-sm">

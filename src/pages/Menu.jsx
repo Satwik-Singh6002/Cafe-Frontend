@@ -63,13 +63,15 @@ const Menu = () => {
             placeholder="Search by name or tag..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="w-full px-4 py-2 pl-10 border rounded-full shadow-sm 
+                       text-[#3c2c1e] placeholder-gray-400 
+                       focus:outline-none focus:ring-2 focus:ring-orange-300"
           />
           <FaSearch className="absolute top-2.5 left-3 text-gray-400" />
         </div>
       </div>
 
-      {/* Filters and Sort */}
+      {/* Filters */}
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div className="flex flex-wrap gap-2">
           {categories.map((category) => (
@@ -103,7 +105,7 @@ const Menu = () => {
           <select
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value)}
-            className="px-3 py-2 border rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="px-3 py-2 border rounded-md text-sm shadow-sm text-black bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300"
           >
             <option value="">Sort By</option>
             <option value="priceLow">Price: Low to High</option>
@@ -167,6 +169,7 @@ const Menu = () => {
         ))}
       </div>
 
+      {/* Empty State */}
       {finalFilteredItems.length === 0 && (
         <p className="text-center text-gray-500 mt-10">No items found.</p>
       )}
