@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { FaHome, FaBars, FaShoppingCart, FaUser } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { FaHome, FaBars, FaShoppingCart, FaUser, FaInfoCircle } from 'react-icons/fa';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/cartcontext';
 
 function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const { cart } = useCart();
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Hide navbar on admin routes
+  if (location.pathname.startsWith('/admin')) return null;
 
   return (
     <>
@@ -65,6 +69,11 @@ function Navbar() {
                 </span>
               )}
               <span>Cart</span>
+            </button>
+
+            <button onClick={() => navigate('/about')} className="flex flex-col items-center text-xs">
+              <FaInfoCircle size={20} />
+              <span>About</span>
             </button>
 
             <button onClick={() => setShowAuthMenu(!showAuthMenu)} className="flex flex-col items-center text-xs">

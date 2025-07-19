@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -19,17 +19,27 @@ import TrackOrder from './pages/TrackOrder';
 import Wishlist from './pages/Wishlist';
 import PayNow from './pages/PayNow';
 
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+
 import { CartProvider } from './context/cartcontext';
+import About from './pages/About';
+
 
 function App() {
   const [showPopup, setShowPopup] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check if user already made a decision
   useEffect(() => {
     const permission = localStorage.getItem('locationPermission');
     if (!permission || permission === 'denied') {
-      setShowPopup(true); // Show popup if not granted
+      setShowPopup(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const admin = localStorage.getItem('isAdmin') === 'true';
+    setIsAdmin(admin);
   }, []);
 
   const handleAllow = () => {
@@ -49,7 +59,7 @@ function App() {
 
   const handleDeny = () => {
     localStorage.setItem('locationPermission', 'denied');
-    setShowPopup(true); // Keep showing popup if denied
+    setShowPopup(true);
     console.log('🚫 Location access denied');
   };
 
@@ -61,6 +71,7 @@ function App() {
           <Navbar />
           <main className="flex-grow">
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
@@ -74,6 +85,18 @@ function App() {
               <Route path="/track" element={<TrackOrder />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/pay" element={<PayNow />} />
+
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  isAdmin ? <AdminDashboard /> : <Navigate to="/admin/login" />
+                }
+              />
+              <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
+              <Route path="/about" element={<About />} />
+
             </Routes>
           </main>
           <Footer />
