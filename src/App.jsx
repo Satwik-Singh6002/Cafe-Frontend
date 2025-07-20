@@ -18,13 +18,13 @@ import Success from './pages/Success';
 import TrackOrder from './pages/TrackOrder';
 import Wishlist from './pages/Wishlist';
 import PayNow from './pages/PayNow';
+import About from './pages/About';
 
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminOrderList from './pages/AdminOrderList'; // ✅ Import Order List Page
 
 import { CartProvider } from './context/cartcontext';
-import About from './pages/About';
-
 
 function App() {
   const [showPopup, setShowPopup] = useState(false);
@@ -40,6 +40,14 @@ function App() {
   useEffect(() => {
     const admin = localStorage.getItem('isAdmin') === 'true';
     setIsAdmin(admin);
+
+    const handleStorage = () => {
+      const adminStatus = localStorage.getItem('isAdmin') === 'true';
+      setIsAdmin(adminStatus);
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const handleAllow = () => {
@@ -48,10 +56,10 @@ function App() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          console.log('📍 Location:', position.coords);
+          console.log('Location:', position.coords);
         },
         (error) => {
-          console.error('⚠️ Location error:', error);
+          console.error('Location error:', error);
         }
       );
     }
@@ -60,7 +68,6 @@ function App() {
   const handleDeny = () => {
     localStorage.setItem('locationPermission', 'denied');
     setShowPopup(true);
-    console.log('🚫 Location access denied');
   };
 
   return (
@@ -75,8 +82,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/profile" element={<Profile />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/menu/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
@@ -85,18 +92,22 @@ function App() {
               <Route path="/track" element={<TrackOrder />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/pay" element={<PayNow />} />
+              <Route path="/about" element={<About />} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route
                 path="/admin/dashboard"
-                element={
-                  isAdmin ? <AdminDashboard /> : <Navigate to="/admin/login" />
-                }
+                element={isAdmin ? <AdminDashboard /> : <Navigate to="/admin/login" replace />}
               />
-              <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
-              <Route path="/about" element={<About />} />
-
+              <Route
+                path="/admin/orders"
+                element={isAdmin ? <AdminOrderList /> : <Navigate to="/admin/login" replace />}
+              />
+              <Route
+                path="/admin"
+                element={<Navigate to={isAdmin ? '/admin/dashboard' : '/admin/login'} />}
+              />
             </Routes>
           </main>
           <Footer />

@@ -10,13 +10,12 @@ const AdminLogin = () => {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // ✅ Hardcoded credentials (you can later replace with API)
     const validUsername = 'admin';
     const validPassword = 'admin123';
 
     if (username === validUsername && password === validPassword) {
       localStorage.setItem('isAdmin', 'true');
-      navigate('/admin'); // ✅ Redirect to dashboard
+      navigate('/admin/dashboard'); // ✅ Redirect after successful login
     } else {
       setError('Invalid username or password');
     }
@@ -34,7 +33,7 @@ const AdminLogin = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border rounded text-gray-800 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter username"
               required
             />
@@ -45,7 +44,7 @@ const AdminLogin = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded text-gray-800 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter password"
               required
             />
